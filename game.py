@@ -1,13 +1,15 @@
 import pygame
 from utils import load_img
 from dino import Dino
+from bg import  Bg
 
 class Game:
     __is_running: bool
     __fps: float
     __screen_size: tuple[float, float]
-    __dino: Dino
     __plane_y: float
+    __dino: Dino
+    __bg: Bg
 
     def __init__(
             self,
@@ -29,6 +31,8 @@ class Game:
             jump_height=self.__screen_size[1] * 0.4, jump_duration=0.75,
             animation_duration=0.1
         )
+
+        self.__bg = Bg(self.__screen_size, self.__fps, 100)
 
 
     def start(self):
@@ -53,11 +57,13 @@ class Game:
     def __before_render(self):
         """Действия с объектами до отрисовки"""
         self.__dino.before_render()
+        self.__bg.before_render()
 
 
     def __render(self):
         """Отрисовка объектов"""
         self.screen.fill((255, 255, 255))
+        self.__bg.blit(self.screen)
         self.screen.blit(self.__dino.img, self.__dino.img_position)
         pygame.display.update()
 
@@ -85,6 +91,11 @@ class Game:
                 self.__dino.duck()
             elif event.type == pygame.KEYUP and event.key == pygame.K_LCTRL:
                 self.__dino.unduck()
+
+
+    def __speedup(self):
+        """Ускоряет набегающие объекты"""
+        self.__bg.speedup()
 
 
     def __quit(self):
