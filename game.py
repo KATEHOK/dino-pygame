@@ -1,10 +1,13 @@
 import pygame
 from utils import load_img
+from dino import Dino
 
 class Game:
     __is_running: bool
     __fps: float
     __screen_size: tuple[float, float]
+    __dino: Dino
+    __plane_y: float
 
     def __init__(
             self,
@@ -18,6 +21,14 @@ class Game:
         pygame.init()
         self.__clock = pygame.time.Clock()
         self.__init_screen()
+
+        self.__plane_y = self.__screen_size[1] * 0.75
+        self.__dino = Dino(
+            fps=self.__fps,
+            x=self.__screen_size[0] * 0.2, y=self.__plane_y,
+            jump_height=self.__screen_size[1] * 0.4, jump_duration=0.75,
+            animation_duration=0.1
+        )
 
 
     def start(self):
@@ -35,30 +46,45 @@ class Game:
             self.__render()
             self.__after_render()
 
-            for event in pygame.event.get():
-                self.__handle_event(event)
+            self.__handle_key_press()
+            self.__handle_events()
 
 
     def __before_render(self):
         """Действия с объектами до отрисовки"""
-        ...
+        self.__dino.before_render()
 
 
     def __render(self):
         """Отрисовка объектов"""
         self.screen.fill((255, 255, 255))
+        self.screen.blit(self.__dino.img, self.__dino.img_position)
         pygame.display.update()
 
 
     def __after_render(self):
         """Действия с объектами после отрисовки"""
-        ...
+        self.__dino.after_render()
 
 
-    def __handle_event(self, event):
+    def __handle_key_press(self):
+        """Обработка нажатий клавиш"""
+        keys = pygame.key.get_pressed()
+        # прыжок
+        if keys[pygame.K_SPACE]:
+            self.__dino.jump()
+
+
+    def __handle_events(self):
         """Обработка событий"""
-        if event.type == pygame.QUIT:
-            self.__quit()
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                self.__quit()
+            # приседание
+            elif event.type == pygame.KEYDOWN and event.key == pygame.K_LCTRL:
+                self.__dino.duck()
+            elif event.type == pygame.KEYUP and event.key == pygame.K_LCTRL:
+                self.__dino.unduck()
 
 
     def __quit(self):
