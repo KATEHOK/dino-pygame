@@ -64,7 +64,7 @@ class Game:
         """Отрисовка объектов"""
         self.screen.fill((255, 255, 255))
         self.__bg.blit(self.screen)
-        self.screen.blit(self.__dino.img, self.__dino.img_position)
+        self.__dino.blit(self.screen)
         pygame.display.update()
 
 

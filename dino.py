@@ -1,5 +1,5 @@
 import pygame
-from utils import load_img
+from img_wrapper import ImgWrapper
 
 class Dino:
     # фреймов в секунду
@@ -13,7 +13,7 @@ class Dino:
     __is_jumping: bool
     __is_ducking: bool
 
-    __imgs: dict[str, tuple[pygame.Surface, ...]]
+    __imgs: dict[str, tuple[ImgWrapper, ...]]
     __img_id: int
 
     # центр нижней стороны объекта (ноги динозавра)
@@ -77,6 +77,7 @@ class Dino:
         """Предобработка фрейма (подготовка к отрисовке, обновление хит бокса)"""
         if self.__is_jumping:
                 self.__jumping()
+        self.__update_img_position()
         self.__update_collider()
 
     def after_render(self):
@@ -87,6 +88,10 @@ class Dino:
             self.__switch_img()
             if self.__frame_id >= 1_000:
                 self.__frame_id = 0
+
+    def blit(self, surface: pygame.Surface):
+        """Публикует актуальное изображение на поверхности"""
+        surface.blit(self.img.img, self.img.position)
 
     def duck(self):
         """Начало приседания"""
@@ -123,25 +128,31 @@ class Dino:
         directory = "./img/dino/base"
         self.__imgs = {
             'running': (
-                load_img(directory, "left_step"),
-                load_img(directory, "right_step"),
+                ImgWrapper(0, 0, directory, "left_step"),
+                ImgWrapper(0, 0, directory, "right_step"),
             ),
             'jumping': (
-                load_img(directory, "jump"),
+                ImgWrapper(0, 0, directory, "jump"),
             ),
             'ducking': (
-                load_img(directory, "down_left_step"),
-                load_img(directory, "down_right_step"),
+                ImgWrapper(0, 0, directory, "down_left_step"),
+                ImgWrapper(0, 0, directory, "down_right_step"),
             )
         }
         self.__img_id = 0
+
+    def __update_img_position(self):
+        """Обновляет координаты для отрисовки актуальному изображению"""
+        position = self.__img_position
+        self.img.x = position[0]
+        self.img.y = position[1]
 
     def __update_collider(self):
         """
         Обновляет положение и размеры хит бокса
         (пересоздает на основе положения и размеров картинки)
         """
-        self.__collider = self.img.get_rect(topleft=self.img_position)
+        self.__collider = self.img.collider
 
     def __reset_img(self):
         """Сбрасывает текущее изображение до первого для данного состояния"""
@@ -168,6 +179,10 @@ class Dino:
         """Завершение приседания (не сбрасывает картинку)"""
         self.__is_ducking = False
 
+    @property
+    def __img_position(self) -> tuple[float, float]:
+        """Позиция для отрисовки актуального изображения (левый верхний угол)"""
+        return self.__x - self.img.width / 2, self.__y - self.img.height
 
     @property
     def collider(self) -> pygame.Rect:
@@ -175,17 +190,12 @@ class Dino:
         return self.__collider
 
     @property
-    def img_position(self) -> tuple[float, float]:
-        """Позиция для отрисовки актуального изображения (левый верхний угол)"""
-        return self.__x - self.img.get_width() / 2, self.__y - self.img.get_height()
-
-    @property
-    def img(self) -> pygame.Surface:
+    def img(self) -> ImgWrapper:
         """Актуальное изображение"""
         return self.__get_imgs[self.__img_id]
 
     @property
-    def __get_imgs(self) -> tuple[pygame.Surface, ...]:
+    def __get_imgs(self) -> tuple[ImgWrapper, ...]:
         """Изображения для актуального состояния"""
         if self.__is_jumping:
             return self.__imgs['jumping']
