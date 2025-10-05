@@ -25,7 +25,7 @@ class Bg:
 
     def speedup(self, percent: float = 10):
         """Увеличивает скорость"""
-        self.__speed_ppf *= (1 + percent)
+        self.__speed_ppf *= (1 + percent / 100)
 
     def blit(self, surface: pygame.Surface):
         """Публикует изображения фона на поверхности"""

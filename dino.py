@@ -67,7 +67,8 @@ class Dino:
 
         self.__init_states()
         self.__init_imgs()
-        self.__init_collider()
+        self.__update_img_position()
+        self.__update_collider()
 
         self.__fpa = max(1, round(animation_duration * self.__fps))
         self.__frame_id = 0
@@ -91,7 +92,7 @@ class Dino:
 
     def blit(self, surface: pygame.Surface):
         """Публикует актуальное изображение на поверхности"""
-        surface.blit(self.img.img, self.img.position)
+        self.__img.blit(surface)
 
     def duck(self):
         """Начало приседания"""
@@ -112,11 +113,6 @@ class Dino:
             self.__jump_frame_id = 0
             self.__is_jumping = True
             self.__reset_img()
-
-
-    def __init_collider(self):
-        """Инициализирует хит бокс"""
-        self.__update_collider()
 
     def __init_states(self):
         """Инициализирует состояния"""
@@ -144,15 +140,15 @@ class Dino:
     def __update_img_position(self):
         """Обновляет координаты для отрисовки актуальному изображению"""
         position = self.__img_position
-        self.img.x = position[0]
-        self.img.y = position[1]
+        self.__img.x = position[0]
+        self.__img.y = position[1]
 
     def __update_collider(self):
         """
         Обновляет положение и размеры хит бокса
         (пересоздает на основе положения и размеров картинки)
         """
-        self.__collider = self.img.collider
+        self.__collider = self.__img.collider
 
     def __reset_img(self):
         """Сбрасывает текущее изображение до первого для данного состояния"""
@@ -182,7 +178,7 @@ class Dino:
     @property
     def __img_position(self) -> tuple[float, float]:
         """Позиция для отрисовки актуального изображения (левый верхний угол)"""
-        return self.__x - self.img.width / 2, self.__y - self.img.height
+        return self.__x - self.__img.width / 2, self.__y - self.__img.height
 
     @property
     def collider(self) -> pygame.Rect:
@@ -190,7 +186,15 @@ class Dino:
         return self.__collider
 
     @property
-    def img(self) -> ImgWrapper:
+    def height(self):
+        return self.__img.height
+
+    @property
+    def width(self):
+        return self.__img.width
+
+    @property
+    def __img(self) -> ImgWrapper:
         """Актуальное изображение"""
         return self.__get_imgs[self.__img_id]
 
